@@ -8,12 +8,10 @@ const { ethers, network } = require("hardhat")
 const DAI = "0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063";
 const WETH9 = "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270"; //WMATIC
 const USDC = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174";
-const USDC_CONTRACT = '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174';
 const CRV = "0x172370d5Cd63279eFa6d502DAB29171933a610AF";
 const BLOK = "0x229b1b6C23ff8953D663C4cBB519717e323a0a84"
 
-const WHALE = '0x06959153B974D0D5fDfd87D561db6d8d4FA0bb0B'; // 
-const USDC_WHALE = '0x06959153B974D0D5fDfd87D561db6d8d4FA0bb0B';
+const WHALE = '0x06959153B974D0D5fDfd87D561db6d8d4FA0bb0B';
 
 const USDC_decimals = 10 ** 6
 // const SMART_WALLET_ADDRESS = '0xeC20dCBf0380F1C9856Ee345aF41F62Ee45a95a1';
@@ -62,25 +60,6 @@ describe("Testing Smart wallet....", () => {
         wethBalance = Number(wethBalance).toFixed(2);
         console.log("smartWallet native token balance: ", wethBalance, "MATIC")
 
-
-        // usdc = await ethers.getContractAt("IERC20", USDC_CONTRACT)
-        // accounts = await ethers.getSigners()
-
-        // //Send some USDC to smart wallet (Smart wallet receives tokens)
-        // const amount = 1000n * 10n ** 6n
-
-
-        // console.log("USDC balance of whale", await usdc.balanceOf(USDC_WHALE) / USDC_decimals)
-        // expect(await usdc.balanceOf(USDC_WHALE)).to.gte(amount)
-
-        // await usdc
-        //     .connect(whale_signer)
-        //     .transfer(walletcontract.address, amount)
-
-        // console.log(
-        //     "USDC balance of smartWallet",
-        //     await usdc.balanceOf(walletcontract.address) / USDC_decimals
-        // )
 
 
     })
@@ -237,7 +216,7 @@ describe("Testing Smart wallet....", () => {
 
         console.log("transfer to accounts[0]...")
         tx = walletcontract.transfer(
-            USDC_CONTRACT,
+            USDC,
             accounts[0].address,
             transferAmount.toString()
         )
@@ -259,7 +238,7 @@ describe("Testing Smart wallet....", () => {
 
         console.log("Deposit...")
         tx = await walletcontract.aave_deposit(
-            USDC_CONTRACT,
+            USDC,
             depositAmount.toString()
         )
 
@@ -273,7 +252,7 @@ describe("Testing Smart wallet....", () => {
 
         //withdraw
         console.log("Withdraw...")
-        tx = await walletcontract.aave_withdraw(USDC_CONTRACT, depositAmount.toString());
+        tx = await walletcontract.aave_withdraw(USDC, depositAmount.toString());
 
         //check atoken balance. should be 0 or close to it
         atokenBalance = await atokenContract.balanceOf(walletcontract.address)
@@ -284,7 +263,7 @@ describe("Testing Smart wallet....", () => {
 
 
         //check allowance of aave lending pool. should be 0.
-        const allowance_USDC = await usdc.allowance(USDC_WHALE, aaveLendingPoolAddr);
+        const allowance_USDC = await usdc.allowance(WHALE, aaveLendingPoolAddr);
         console.log("allowance: ", allowance_USDC);
         expect(allowance_USDC).to.equal(0);
 
