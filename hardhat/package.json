@@ -8,6 +8,7 @@
     "@aave/protocol-v2": "^1.0.1",
     "@nomiclabs/hardhat-etherscan": "^3.1.4",
     "@openzeppelin/contracts": "^3.4.0",
+    "@uniswap/v3-periphery": "^1.4.3",
     "dotenv": "^16.0.3"
   }
 }

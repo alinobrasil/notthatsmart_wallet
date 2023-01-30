@@ -1,16 +1,20 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.7.6;
+pragma abicoder v2;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ILendingPool} from "./interfaces/aave/ILendingPool.sol";
+
+import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol"; //v0.6.0
+import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol"; //0.7.5
 
 // import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 // import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 
 contract Wallet {
     address public owner;
-    // mapping(address => uint256) public balances;
 
+    //uniswapv3
     address public constant aaveLendingPoolAddr =
         0x8dFf5E27EA6b7AC08EbFdf9eB090F32ee9a30fcf;
 
@@ -29,6 +33,7 @@ contract Wallet {
     }
 
     function withdraw(uint256 amount) public {
+        // need to be nonreentrant
         require(amount > 0, "Cannot withdraw 0 or less wei");
         require(msg.sender == owner, "Only the owner can withdraw funds");
 
@@ -81,4 +86,41 @@ contract Wallet {
     }
 
     //Uniswap -----------------
+    //use v3 to enable swaps between any tokens
+    //need a whitelist of tokens to swap
+    ISwapRouter public constant swapRouter =
+        ISwapRouter(0xE592427A0AEce92De3Edee1F18E0157C05861564);
+    uint24 public constant poolFee = 3000;
+
+    function swapExactInputSingle(
+        uint256 amountIn,
+        address originalToken,
+        address newToken
+    ) external returns (uint256 amountOut) {
+        // msg.sender must approve this contract
+
+        // Approve the router to spend
+        TransferHelper.safeApprove(
+            originalToken,
+            address(swapRouter),
+            amountIn
+        );
+
+        // Naively set amountOutMinimum to 0. In production, use an oracle or other data source to choose a safer value for amountOutMinimum.
+        // We also set the sqrtPriceLimitx96 to be 0 to ensure we swap our exact input amount.
+        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter
+            .ExactInputSingleParams({
+                tokenIn: originalToken,
+                tokenOut: newToken,
+                fee: poolFee,
+                recipient: address(this),
+                deadline: block.timestamp,
+                amountIn: amountIn,
+                amountOutMinimum: 0,
+                sqrtPriceLimitX96: 0
+            });
+
+        // The call to `exactInputSingle` executes the swap.
+        amountOut = swapRouter.exactInputSingle(params);
+    }
 }
