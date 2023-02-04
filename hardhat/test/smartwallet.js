@@ -1,10 +1,20 @@
 const { expect } = require("chai")
 const { ethers, network } = require("hardhat")
+const BigNumber = require("bignumber.js");
 
+function CleanNum(amount, decimals = 18) {
+
+    numerator = new BigNumber(amount);
+    denominator = new BigNumber(10 ** decimals);
+    cleanNum = numerator.dividedBy(denominator).toString();
+    cleanNum = Number(cleanNum).toFixed(2);
+    cleanNum = cleanNum.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+    return cleanNum
+
+}
 
 // These are on polygon mainnet
-
-
 const DAI = "0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063";
 const WETH9 = "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270"; //WMATIC
 const USDC = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174";
@@ -58,8 +68,36 @@ describe("Testing Smart wallet....", () => {
         let wethBalance = await weth.balanceOf(walletcontract.address);
         wethBalance = ethers.utils.formatEther(wethBalance.toString())
         wethBalance = Number(wethBalance).toFixed(2);
-        console.log("smartWallet native token balance: ", wethBalance, "MATIC")
+        console.log("smartWallet WMATIC balance: ", wethBalance, "WMATIC")
 
+
+
+    })
+
+    it("Receive native MATIC", async () => {
+        console.log("\n----- Receive native MATIC into wallet -------");
+        const [signer] = await ethers.getSigners();
+        await signer.sendTransaction({
+            to: walletcontract.address,
+            value: ethers.utils.parseEther("12")
+        })
+
+        let walletBalance = await walletcontract.getBalance()
+        walletBalance = walletBalance.toString()
+        // console.log(walletBalance)
+        console.log("Wallet MATIC balance: ", CleanNum(walletBalance))
+    })
+
+
+    it("Send native MATIC to someone", async () => {
+        console.log("\n----- Send/withdraw native MATIC from wallet -------");
+
+        await walletcontract.withdraw(ethers.utils.parseEther("1"), accounts[1].address);
+
+        let walletBalance = await walletcontract.getBalance()
+        walletBalance = walletBalance.toString()
+        // console.log(walletBalance)
+        console.log("Wallet MATIC balance: ", CleanNum(walletBalance))
 
 
     })
@@ -163,8 +201,6 @@ describe("Testing Smart wallet....", () => {
         console.log("Dai balance after swap: ", daiBalance, " DAI")
     })
 
-
-
     it("Swap CRV to WMATIC", async function () {
         console.log("\n-----Testing Swap: CRV to WMATIC-----")
 
@@ -202,7 +238,6 @@ describe("Testing Smart wallet....", () => {
 
 
     })
-
 
     it("move tokens out of smart wallet (transfer)", async () => {
         console.log("\n-----Test moving tokens out of smart wallet-----")
@@ -272,3 +307,8 @@ describe("Testing Smart wallet....", () => {
 
 
 })
+
+
+
+
+
