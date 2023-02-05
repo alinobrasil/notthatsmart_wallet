@@ -2,9 +2,10 @@ const { expect } = require("chai")
 const { ethers, network } = require("hardhat")
 const BigNumber = require("bignumber.js");
 
+// function convenient for formatting big numbers
 function CleanNum(amount, decimals = 18) {
 
-    numerator = new BigNumber(amount);
+    numerator = new BigNumber(amount.toString());
     denominator = new BigNumber(10 ** decimals);
     cleanNum = numerator.dividedBy(denominator).toString();
     cleanNum = Number(cleanNum).toFixed(2);
@@ -23,10 +24,9 @@ const BLOK = "0x229b1b6C23ff8953D663C4cBB519717e323a0a84"
 
 const WHALE = '0x06959153B974D0D5fDfd87D561db6d8d4FA0bb0B';
 
-const USDC_decimals = 10 ** 6
-// const SMART_WALLET_ADDRESS = '0xeC20dCBf0380F1C9856Ee345aF41F62Ee45a95a1';
-
 const aaveLendingPoolAddr = '0x8dFf5E27EA6b7AC08EbFdf9eB090F32ee9a30fcf';
+
+const USDC_aTOKEN_ADDR = '0x1a13F4Ca1d028320A707D99520AbFefca3998b7F';
 
 
 describe("Testing Smart wallet....", () => {
@@ -35,6 +35,7 @@ describe("Testing Smart wallet....", () => {
     let walletcontract;
 
     const amountIn = 10n * 10n ** 18n;
+    const provider = new ethers.providers.Web3Provider(network.provider);
 
     before(async () => {
 
@@ -66,43 +67,78 @@ describe("Testing Smart wallet....", () => {
         whale_signer = await ethers.getSigner(WHALE);
 
         let wethBalance = await weth.balanceOf(walletcontract.address);
-        wethBalance = ethers.utils.formatEther(wethBalance.toString())
-        wethBalance = Number(wethBalance).toFixed(2);
-        console.log("smartWallet WMATIC balance: ", wethBalance, "WMATIC")
-
-
+        console.log("smartWallet WMATIC balance: ", CleanNum(wethBalance), "WMATIC")
 
     })
 
+    //basic wallet function: send/receive
     it("Receive native MATIC", async () => {
         console.log("\n----- Receive native MATIC into wallet -------");
         const [signer] = await ethers.getSigners();
         await signer.sendTransaction({
             to: walletcontract.address,
-            value: ethers.utils.parseEther("12")
+            value: ethers.utils.parseEther("2")
         })
 
-        let walletBalance = await walletcontract.getBalance()
-        walletBalance = walletBalance.toString()
-        // console.log(walletBalance)
+        let walletBalance = await provider.getBalance(walletcontract.address)
         console.log("Wallet MATIC balance: ", CleanNum(walletBalance))
-    })
 
+        let accountBalance = await provider.getBalance(accounts[0].address)
+        console.log("accounts[0] MATIC balance: ", CleanNum(accountBalance))
+    })
 
     it("Send native MATIC to someone", async () => {
-        console.log("\n----- Send/withdraw native MATIC from wallet -------");
 
-        await walletcontract.withdraw(ethers.utils.parseEther("1"), accounts[1].address);
+        console.log("\n-----Send/withdraw native MATIC from wallet -------");
 
-        let walletBalance = await walletcontract.getBalance()
-        walletBalance = walletBalance.toString()
-        // console.log(walletBalance)
-        console.log("Wallet MATIC balance: ", CleanNum(walletBalance))
+        // amount to send
+        const amountOut = 1
 
+        let startingBalance = await provider.getBalance(walletcontract.address)
+        console.log("starting wallet balance: ", CleanNum(startingBalance))
+
+        let accountBalance = await provider.getBalance(accounts[1].address)
+        console.log("starting accounts1 balance: ", CleanNum(accountBalance))
+
+        // withdraw to accounts[1]
+        await walletcontract.withdraw(ethers.utils.parseEther(amountOut.toString()), accounts[1].address);
+
+        let endingBalance = await provider.getBalance(walletcontract.address)
+        console.log("Ending wallet balance: ", CleanNum(endingBalance))
+
+        accountBalance = await provider.getBalance(accounts[1].address)
+        console.log("Ending accounts1 balance: ", CleanNum(accountBalance))
+
+        expect(CleanNum(startingBalance) - CleanNum(endingBalance)).to.equal(amountOut)
 
     })
 
+    it("move tokens out of smart wallet (transfer)", async () => {
+        console.log("\n---------Move tokens out of smart wallet-----")
 
+        //load up some USDC in smart contract
+        const transferAmount = 100n * 10n ** 6n
+        await usdc.connect(whale_signer)
+            .transfer(walletcontract.address, transferAmount);
+        let usdcBalance = await usdc.balanceOf(walletcontract.address)
+        console.log("smart wallet USDC: ", CleanNum(usdcBalance, 6));
+
+        console.log("transfer to accounts[0]...")
+        tx = walletcontract.transfer(
+            USDC,
+            accounts[0].address,
+            transferAmount.toString()
+        )
+        usdcBalance = await usdc.balanceOf(walletcontract.address)
+        console.log("smart wallet USDC after: ", CleanNum(usdcBalance, 6));
+
+        let accountBalance = await usdc.balanceOf(accounts[0].address)
+        console.log("accounts[0] USDC: ", CleanNum(accountBalance, 6));
+
+        expect(await usdc.balanceOf(accounts[0].address)).gte(transferAmount.toString())
+    })
+
+    //Swap functionality (uniswap)
     it("swap WMATIC to DAI", async () => {
         console.log("\n-----Testing Swap: WMATIC to DAI-----")
 
@@ -111,9 +147,7 @@ describe("Testing Smart wallet....", () => {
             .connect(whale_signer)
             .transfer(walletcontract.address, amountIn);
         let wethBalance = await weth.balanceOf(walletcontract.address);
-        wethBalance = ethers.utils.formatEther(wethBalance.toString())
-        wethBalance = Number(wethBalance).toFixed(2);
-        console.log("Starting WMATIC balance: ", wethBalance)
+        console.log("Starting WMATIC balance: ", CleanNum(wethBalance))
 
         let daiBalance = await dai.balanceOf(walletcontract.address);
         console.log("Starting Dai balance: ", daiBalance.toString(), "DAI")
@@ -124,82 +158,68 @@ describe("Testing Smart wallet....", () => {
             WETH9,
             DAI)
         daiBalance = await dai.balanceOf(walletcontract.address)
-        daiBalance = ethers.utils.formatEther(daiBalance.toString())
-        console.log("new Dai balance: ", daiBalance.toString(), "DAI")
+        console.log("new Dai balance: ", CleanNum(daiBalance), "DAI")
 
     })
 
-    it("Swap WMATIC to BLOK", async function () {
-        console.log("\n-----Testing Swap: WMATIC to BLOK-----")
-        //send some weth (WMATIC) to accounts[0]
-        await weth
-            .connect(whale_signer)
-            .transfer(walletcontract.address, amountIn);
-        let wethBalance = await weth.balanceOf(walletcontract.address);
-        wethBalance = ethers.utils.formatEther(wethBalance.toString())
-        wethBalance = Number(wethBalance);
-        console.log("Starting WMATIC balance: ", wethBalance.toFixed(2))
+    // it("Swap WMATIC to BLOK", async function () {
+    //     console.log("\n-----Testing Swap: WMATIC to BLOK-----")
+    //     //send some weth (WMATIC) to accounts[0]
+    //     await weth
+    //         .connect(whale_signer)
+    //         .transfer(walletcontract.address, amountIn);
+    //     let wethBalance = await weth.balanceOf(walletcontract.address);
+    //     console.log("Starting WMATIC balance: ", CleanNum(wethBalance))
 
-        let blokBalance = await blok.balanceOf(walletcontract.address);
-        console.log("Starting BLOK balance: ", blokBalance.toString())
+    //     let blokBalance = await blok.balanceOf(walletcontract.address);
+    //     console.log("Starting BLOK balance: ", CleanNum(blokBalance))
 
-        //execute trade. WMATIC --> dai
-        await walletcontract.swapExactInputSingle(
-            amountIn,
-            WETH9,
-            BLOK)
+    //     //execute trade. WMATIC --> dai
+    //     await walletcontract.swapExactInputSingle(
+    //         amountIn,
+    //         WETH9,
+    //         BLOK)
 
-        blokBalance = await blok.balanceOf(walletcontract.address);
-        expect(blokBalance).to.be.greaterThan(0)
-        blokBalance = ethers.utils.formatEther(blokBalance.toString())
-        blokBalance = Number(blokBalance).toFixed(2);
-        console.log("Blok balance after swap: ", blokBalance)
+    //     blokBalance = await blok.balanceOf(walletcontract.address);
+    //     console.log("Blok balance after swap: ", CleanNum(blokBalance))
+    //     expect(blokBalance).to.be.greaterThan(0)
 
-        //show WMATIC balance after swap
-        wethBalance = await weth.balanceOf(walletcontract.address);
-        wethBalance = ethers.utils.formatEther(wethBalance.toString())
-        wethBalance = Number(wethBalance).toFixed(2);
-        console.log("WMATIC balance after swap: ", wethBalance)
+    //     //show WMATIC balance after swap
+    //     wethBalance = await weth.balanceOf(walletcontract.address);
+    //     console.log("WMATIC balance after swap: ", CleanNum(wethBalance))
 
-    })
+    // })
 
-    it("Swap USDC to DAI", async function () {
-        console.log("\n-----Testing Swap: USDC to DAI-----")
+    // it("Swap USDC to DAI", async function () {
+    //     console.log("\n-----Testing Swap: USDC to DAI-----")
 
-        const usdcAmount = 10 * 10 ** 6
-        await usdc
-            .connect(whale_signer)
-            .transfer(walletcontract.address, usdcAmount);
-        let usdcBalance = await usdc.balanceOf(walletcontract.address);
-        console.log("starting USDC balance: ", usdcBalance / 10 ** 6)
+    //     const usdcAmount = 10 * 10 ** 6
+    //     await usdc
+    //         .connect(whale_signer)
+    //         .transfer(walletcontract.address, usdcAmount);
+    //     let usdcBalance = await usdc.balanceOf(walletcontract.address);
+    //     console.log("starting USDC balance: ", CleanNum(usdcBalance, 6))
 
-        let daiBalance = await dai.balanceOf(walletcontract.address);
-        daiBalance = ethers.utils.formatEther(daiBalance.toString())
-        daiBalance = Number(daiBalance).toFixed(2);
-        console.log("Starting Dai balance: ", daiBalance, "DAI")
+    //     let daiBalance = await dai.balanceOf(walletcontract.address);
+    //     console.log("Starting Dai balance: ", CleanNum(daiBalance), "DAI")
 
-        //execute trade. WMATIC --> dai
-        await walletcontract
-            .connect(accounts[0])
-            .swapExactInputSingle(
-                usdcAmount.toString(),
-                USDC,
-                DAI);
+    //     //execute trade. WMATIC --> dai
+    //     await walletcontract
+    //         .connect(accounts[0])
+    //         .swapExactInputSingle(
+    //             usdcAmount.toString(),
+    //             USDC,
+    //             DAI);
 
-        //check dai balance
-        daiBalance = await dai.balanceOf(walletcontract.address)
-        expect(daiBalance).to.be.greaterThan(0)
+    //     //check dai balance
+    //     daiBalance = await dai.balanceOf(walletcontract.address)
+    //     console.log("Dai balance after swap: ", CleanNum(daiBalance), " DAI")
+    //     expect(daiBalance).to.be.greaterThan(0)
 
-        //show USDC balance after swap
-        usdcBalance = await usdc.balanceOf(walletcontract.address);
-        console.log("USDC balance after swap: ", usdcBalance / 10e6)
-
-
-        //show dai balance after the swap
-        daiBalance = ethers.utils.formatEther(daiBalance.toString())
-        daiBalance = Number(daiBalance).toFixed(2);
-        console.log("Dai balance after swap: ", daiBalance, " DAI")
-    })
+    //     //show USDC balance after swap
+    //     usdcBalance = await usdc.balanceOf(walletcontract.address);
+    //     console.log("USDC balance after swap: ", CleanNum(usdcBalance, 6))
+    // })
 
     it("Swap CRV to WMATIC", async function () {
         console.log("\n-----Testing Swap: CRV to WMATIC-----")
@@ -209,14 +229,10 @@ describe("Testing Smart wallet....", () => {
             .connect(whale_signer)
             .transfer(walletcontract.address, amountIn);
         let crvBalance = await crv.balanceOf(walletcontract.address);
-        crvBalance = ethers.utils.formatEther(crvBalance.toString())
-        crvBalance = Number(crvBalance).toFixed(2);
-        console.log("Starting CRV balance: ", crvBalance)
+        console.log("Starting CRV balance: ", CleanNum(crvBalance))
 
         let wethBalance = await weth.balanceOf(walletcontract.address);
-        wethBalance = ethers.utils.formatEther(wethBalance.toString())
-        wethBalance = Number(wethBalance).toFixed(2);
-        console.log("Starting WMATIC balance: ", wethBalance)
+        console.log("Starting WMATIC balance: ", CleanNum(wethBalance))
 
         console.log("execute swap.....")
         //execute trade. WMATIC --> dai
@@ -226,44 +242,17 @@ describe("Testing Smart wallet....", () => {
             WETH9)
 
         crvBalance = await crv.balanceOf(walletcontract.address);
-        crvBalance = ethers.utils.formatEther(crvBalance.toString())
-        crvBalance = Number(crvBalance).toFixed(2);
-        console.log("final CRV balance: ", crvBalance)
+        console.log("final CRV balance: ", CleanNum(crvBalance))
 
 
         wethBalance = await weth.balanceOf(walletcontract.address);
-        wethBalance = ethers.utils.formatEther(wethBalance.toString())
-        wethBalance = Number(wethBalance).toFixed(2);
-        console.log("final WMATIC balance: ", wethBalance)
+        console.log("final WMATIC balance: ", CleanNum(wethBalance))
 
 
     })
 
-    it("move tokens out of smart wallet (transfer)", async () => {
-        console.log("\n-----Test moving tokens out of smart wallet-----")
-
-
-        //load up some USDC in smart contract
-        const transferAmount = 100n * 10n ** 6n
-        await usdc.connect(whale_signer)
-            .transfer(walletcontract.address, transferAmount);
-        console.log("smart wallet USDC: ", await usdc.balanceOf(walletcontract.address) / USDC_decimals);
-
-        console.log("transfer to accounts[0]...")
-        tx = walletcontract.transfer(
-            USDC,
-            accounts[0].address,
-            transferAmount.toString()
-        )
-
-        console.log("smart wallet USDC after: ", await usdc.balanceOf(walletcontract.address) / USDC_decimals);
-        console.log("account[0] USDC: ", await usdc.balanceOf(accounts[0].address) / USDC_decimals);
-
-
-        expect(await usdc.balanceOf(accounts[0].address)).gte(transferAmount.toString())
-    })
-
-    it("Deposit USDC into aave v2 and then withdraw", async () => {
+    // "Save" functionality: Aave
+    it("Deposit USDC into aave v2 ", async () => {
         console.log("\n-----Test using aave: Deposit & withdraw USDC-----")
 
         //get some usdc into wallet
@@ -271,36 +260,121 @@ describe("Testing Smart wallet....", () => {
         await usdc.connect(whale_signer)
             .transfer(walletcontract.address, depositAmount);
 
-        console.log("Deposit...")
+        // console.log("Deposit...")
         tx = await walletcontract.aave_deposit(
             USDC,
             depositAmount.toString()
         )
 
         //check atoken balance. if deposit successful, atoken amount should not be 0
-        const USDC_aTOKEN_ADDR = '0x1a13F4Ca1d028320A707D99520AbFefca3998b7F';
+
         const atokenContract = await ethers.getContractAt("IERC20", USDC_aTOKEN_ADDR)
         let atokenBalance = await atokenContract.balanceOf(walletcontract.address)
-        console.log("smart wallet USDC: ", await usdc.balanceOf(walletcontract.address) / USDC_decimals);
-        console.log("atoken balance of smart wallet = ", atokenBalance);
+        let usdcBalance = await usdc.balanceOf(walletcontract.address)
+        console.log("smart wallet USDC: ", CleanNum(usdcBalance, 6));
+        console.log("atoken balance of smart wallet = ", CleanNum(atokenBalance, 6));
         expect(atokenBalance).to.be.greaterThan(0);
 
+        //check allowance of aave lending pool. should be 0.
+        const allowance_USDC = await usdc.allowance(walletcontract.address, aaveLendingPoolAddr);
+        console.log("allowance after whole operation: ", allowance_USDC);
+        expect(allowance_USDC).to.equal(0);
+
+    })
+
+    it("Withdraw USDC from Aave v2", async () => {
+        console.log("\n------Test withdraw from aave ------------")
+
+        const depositAmount = 100n * 10n ** 6n  //amount from the deposit test
+        const atokenContract = await ethers.getContractAt("IERC20", USDC_aTOKEN_ADDR)
         //withdraw
-        console.log("Withdraw...")
+
         tx = await walletcontract.aave_withdraw(USDC, depositAmount.toString());
 
         //check atoken balance. should be 0 or close to it
-        atokenBalance = await atokenContract.balanceOf(walletcontract.address)
-        console.log("smart wallet USDC: ", await usdc.balanceOf(walletcontract.address) / USDC_decimals);
-        console.log("atoken balance after withdraw: ", atokenBalance)
+        let atokenBalance = await atokenContract.balanceOf(walletcontract.address)
+        let usdcBalance = await usdc.balanceOf(walletcontract.address)
+        console.log("smart wallet USDC: ", CleanNum(usdcBalance, 6));
+        console.log("atoken balance after withdraw: ", CleanNum(atokenBalance, 6))
         expect(atokenBalance).lessThanOrEqual(1n);
         //sometimes you already accrue 10^-6 USDC interest during this test, so use a tiny value instead of 0
 
 
-        //check allowance of aave lending pool. should be 0.
-        const allowance_USDC = await usdc.allowance(WHALE, aaveLendingPoolAddr);
-        console.log("allowance: ", allowance_USDC);
-        expect(allowance_USDC).to.equal(0);
+
+    })
+
+    // Invest (passive income - LP - Quickswap)
+    it("Add liquidity to MATIC/CRV pool", async () => {
+        console.log("\n---------Test adding liquidity -------");
+
+        //first, give the wallet some tokens
+        const amountA = 20n * 10n ** 18n
+        await weth.connect(whale_signer).transfer(walletcontract.address, amountA);
+
+        const amountB = amountA
+        await crv.connect(whale_signer).transfer(walletcontract.address, amountB)
+
+        let wethBalance = await weth.balanceOf(walletcontract.address);
+        console.log("Starting WMATIC balance: ", CleanNum(wethBalance))
+
+        let crvBalance = await crv.balanceOf(walletcontract.address);
+        console.log("starting CRV balance: ", CleanNum(crvBalance))
+
+        console.log("add liquidity...")
+
+        //add liquidity
+        await walletcontract.addLiquidity(
+            WETH9,
+            CRV,
+            amountA,
+            amountB
+        )
+
+        //show balances after adding liquidity
+        wethBalance = await weth.balanceOf(walletcontract.address);
+        console.log("Ending WMATIC balance: ", CleanNum(wethBalance))
+        crvBalance = await crv.balanceOf(walletcontract.address);
+        console.log("Ending CRV balance: ", CleanNum(crvBalance))
+
+        //check LP token balance
+        const factoryContract = await ethers.getContractAt("IUniswapV2Factory", "0x5757371414417b8C6CAad45bAeF941aBc7d3Ab32");
+        const PAIR = await factoryContract.getPair(WETH9, CRV);
+        console.log("Pair address: ", PAIR)
+
+        const pairToken = await ethers.getContractAt("IUniswapV2Pair", PAIR);
+        const pairBalance = await pairToken.balanceOf(walletcontract.address)
+
+        console.log("LP token balance: ", CleanNum(pairBalance));
+        expect(pairBalance).to.be.greaterThan(0);
+
+    })
+
+    it("Remove liquidity", async () => {
+        console.log("\n------- Test removing liquidity ----------")
+        const factoryContract = await ethers.getContractAt("IUniswapV2Factory", "0x5757371414417b8C6CAad45bAeF941aBc7d3Ab32");
+        const PAIR = await factoryContract.getPair(WETH9, CRV);
+        const pairToken = await ethers.getContractAt("IUniswapV2Pair", PAIR);
+        let pairBalance = await pairToken.balanceOf(walletcontract.address)
+
+
+
+        console.log("Starting balances:")
+        console.log("starting USDC/DAI LP token: ", CleanNum(pairBalance));
+        expect(pairBalance).to.be.greaterThan(0);
+        console.log("WMATIC balance: ", CleanNum(await weth.balanceOf(walletcontract.address)));
+        console.log("CRV balance: ", CleanNum(await crv.balanceOf(walletcontract.address)));
+
+        //remove liquidity
+        await walletcontract.removeLiquidity(weth.address, crv.address)
+
+        console.log("Ending balances:")
+        console.log("WMATIC balance: ", CleanNum(await weth.balanceOf(walletcontract.address)));
+        console.log("CRV balance: ", CleanNum(await crv.balanceOf(walletcontract.address)));
+        pairBalance = await pairToken.balanceOf(walletcontract.address)
+        console.log("USDC/DAI LP token: ", CleanNum(pairBalance));
+        expect(pairBalance).to.equal(0)
+
+
 
     })
 

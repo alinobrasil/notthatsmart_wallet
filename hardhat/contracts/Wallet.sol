@@ -8,8 +8,7 @@ import {ILendingPool} from "./interfaces/aave/ILendingPool.sol";
 import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol"; //v0.6.0
 import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol"; //0.7.5
 
-// import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
-// import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
+import "./interfaces/quickswap/UniswapInterfaces.sol";
 
 contract Wallet {
     address payable public owner;
@@ -17,6 +16,14 @@ contract Wallet {
     //uniswapv3
     address public constant aaveLendingPoolAddr =
         0x8dFf5E27EA6b7AC08EbFdf9eB090F32ee9a30fcf;
+
+    //quickswap (uniswapv2)
+    address private constant ROUTER =
+        0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff;
+    //quickswap uses uniswap router v2
+
+    address private constant FACTORY =
+        0x5757371414417b8C6CAad45bAeF941aBc7d3Ab32;
 
     constructor() public {
         owner = payable(msg.sender);
@@ -26,9 +33,9 @@ contract Wallet {
     // be able to receive native eth tokens
     receive() external payable {}
 
-    function getBalance() external view returns (uint256) {
-        return address(this).balance;
-    }
+    // function getBalance() external view returns (uint256) {
+    //     return address(this).balance;
+    // }
 
     function withdraw(uint256 amount, address recipient) external {
         require(msg.sender == owner, "Must be Owner");
@@ -110,5 +117,48 @@ contract Wallet {
 
         // The call to `exactInputSingle` executes the swap.
         amountOut = swapRouter.exactInputSingle(params);
+    }
+
+    function addLiquidity(
+        address _tokenA,
+        address _tokenB,
+        uint256 _amountA,
+        uint256 _amountB
+    ) external {
+        IERC20(_tokenA).approve(ROUTER, _amountA);
+        IERC20(_tokenB).approve(ROUTER, _amountB);
+
+        (
+            uint256 amountA,
+            uint256 amountB,
+            uint256 liquidity
+        ) = IUniswapV2Router(ROUTER).addLiquidity(
+                _tokenA,
+                _tokenB,
+                _amountA,
+                _amountB,
+                1,
+                1,
+                address(this),
+                block.timestamp
+            );
+    }
+
+    function removeLiquidity(address _tokenA, address _tokenB) external {
+        address pair = IUniswapV2Factory(FACTORY).getPair(_tokenA, _tokenB);
+
+        uint256 liquidity = IERC20(pair).balanceOf(address(this));
+        IERC20(pair).approve(ROUTER, liquidity);
+
+        (uint256 amountA, uint256 amountB) = IUniswapV2Router(ROUTER)
+            .removeLiquidity(
+                _tokenA,
+                _tokenB,
+                liquidity,
+                1,
+                1,
+                address(this),
+                block.timestamp
+            );
     }
 }

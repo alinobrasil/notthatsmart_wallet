@@ -16,6 +16,4 @@
 
 
 ## Outstanding tasks:
-- Protection from reentrancy
-- Proxy contracts to be updatable 
 - Frontend: Organize by actions & end results, not by protocol name (how most aggregators and defi wallets do it)
