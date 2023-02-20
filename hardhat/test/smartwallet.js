@@ -439,7 +439,7 @@ describe("Testing Smart wallet....", () => {
 
     //This test fails if combined with some of the swap tests above.
     // probably related to the tracking of lending pool size
-    // no conflict with usdc/dai swap
+    // no conflict with usdc/dai swap asdf
     it("Unauthorized attempt to Add liquidity to MATIC/CRV pool", async () => {
         console.log("\nUnauthorized attempt adding liquidity -------");
 
