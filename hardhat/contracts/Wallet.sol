@@ -59,7 +59,7 @@ contract Wallet {
     // aave: deposit funds
     function aave_deposit(address assetAddress, uint256 amount) public {
         // lending pooL: 0x8dff5e27ea6b7ac08ebfdf9eb090f32ee9a30fcf
-
+        require(msg.sender == owner, "Must be owner");
         //approve
         IERC20(assetAddress).approve(aaveLendingPoolAddr, amount);
 
@@ -73,6 +73,8 @@ contract Wallet {
     }
 
     function aave_withdraw(address assetAddress, uint256 amount) public {
+        require(msg.sender == owner, "Must be owner");
+
         ILendingPool(aaveLendingPoolAddr).withdraw(
             assetAddress,
             amount,
@@ -92,7 +94,7 @@ contract Wallet {
         address originalToken,
         address newToken
     ) external returns (uint256 amountOut) {
-        // msg.sender must approve this contract
+        require(msg.sender == owner, "Must be owner");
 
         // Approve the router to spend
         TransferHelper.safeApprove(
@@ -125,6 +127,8 @@ contract Wallet {
         uint256 _amountA,
         uint256 _amountB
     ) external {
+        require(msg.sender == owner, "Must be owner");
+
         IERC20(_tokenA).approve(ROUTER, _amountA);
         IERC20(_tokenB).approve(ROUTER, _amountB);
 
@@ -145,6 +149,7 @@ contract Wallet {
     }
 
     function removeLiquidity(address _tokenA, address _tokenB) external {
+        require(msg.sender == owner, "Must be owner");
         address pair = IUniswapV2Factory(FACTORY).getPair(_tokenA, _tokenB);
 
         uint256 liquidity = IERC20(pair).balanceOf(address(this));
