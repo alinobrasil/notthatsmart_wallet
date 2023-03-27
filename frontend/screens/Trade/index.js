@@ -108,7 +108,7 @@ const dummyData = [
         logo: weth
     },
     {
-        name: "MATIC",
+        name: "WMATIC",
         price: 1.23,
         logo: matic
     },

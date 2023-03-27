@@ -43,11 +43,7 @@ contract Wallet {
     }
 
     // transfer any ERC20 token out of wallet
-    function transfer(
-        address token,
-        address recipient,
-        uint256 amount
-    ) public {
+    function transfer(address token, address recipient, uint256 amount) public {
         require(amount > 0, "Cannot transfer 0 or less tokens");
         require(msg.sender == owner, "Only the owner can transfer tokens");
 

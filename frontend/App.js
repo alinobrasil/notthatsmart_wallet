@@ -28,7 +28,8 @@ import Config from 'react-native-config';
 // import { PRIVATE_KEY, POLYGON_MAINNET_URL } from '@env';
 // const PRIVATE_KEY = Config.PRIVATE_KEY;
 
-const PRIVATE_KEY = VANITY_ETH
+//hardhat private key
+const PRIVATE_KEY = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
 
 const POLYGON_MAINNET_URL = Config.POLYGON_MAINNET_URL;
 console.log("\n\n##ENV VARIABLES")

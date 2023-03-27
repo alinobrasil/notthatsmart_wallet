@@ -36,7 +36,7 @@ const tokens = {
         image: linklogo,
         description: "Powers the largest oracle network"
     },
-    matic: {
+    wmatic: {
         address: "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
         image: maticlogo,
         description: "Used for transactions on the Polygon network"
@@ -80,9 +80,6 @@ const addresses = {
 
 export {
     tokens,
-
     addresses,
-
     wethlogo
-
 }

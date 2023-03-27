@@ -1,13 +1,14 @@
 import { View, Text, Image, Button, ScrollView } from 'react-native'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useContext } from 'react'
 import TitleText from '../../components/TitleText'
 import { SIZES, COLORS } from '../../constants/theme'
-import ModalDropdown from 'react-native-modal-dropdown';
-import triangle from '../../assets/sort-down.png'
 import Dropdown from '../../components/Dropdown';
 import AmountInput from '../../components/AmountInput';
 import ButtonCTA from '../../components/ButtonCTA';
-
+import AppContext from '../../context';
+import { ethers } from 'ethers';
+import { CleanNumber } from '../../utils/calculations';
+import { tokens } from '../../constants/assets';
 
 const TradeAmount = ({ route }) => {
     const symbol = route.params.symbol;
@@ -18,6 +19,31 @@ const TradeAmount = ({ route }) => {
 
     const [sellToken, setSellToken] = useState("")
     const [sellAmount, setSellAmount] = useState(0)
+    const [sellTokenBalance, setSellTokenBalance] = useState(0)
+
+    const [nativeBalance, setNativeBalance] = useState(0)
+
+    const context = useContext(AppContext);
+    const { provider, signer } = context;
+
+    // console.log(provider)
+
+    const getNativeBalance = async () => {
+        let balance = await signer.getBalance();
+        // console.log(balance)
+        balance = CleanNumber(balance.toString())
+        console.log(balance)
+        setNativeBalance(balance)
+    }
+
+    getTokenBalance = async (token) => {
+
+        // get token address
+
+
+    }
+
+
 
     // When user edits buy amount, calculate how much they'd have to pay based on current price
     const changedBuyAmount = (amount) => {
@@ -61,6 +87,10 @@ const TradeAmount = ({ route }) => {
             setSellToken(symbol)
             setBuyToken(getDefaultBuyToken())
         }
+
+        getNativeBalance()
+
+
     }, []);
 
 
@@ -75,7 +105,7 @@ const TradeAmount = ({ route }) => {
             <Text style={{
                 fontSize: SIZES.font,
                 color: COLORS.blue,
-                marginTop: 30,
+                marginTop: 20,
             }}
             >
                 Please specify either the amount you wish to buy or amount you wish to pay:
@@ -83,7 +113,7 @@ const TradeAmount = ({ route }) => {
 
             <View style={{ padding: 20 }}>
                 <Text style={{
-                    marginTop: 60,
+                    marginTop: 30,
                     fontSize: SIZES.font,
                     color: COLORS.blue,
                     fontWeight: 'bold',
@@ -98,7 +128,7 @@ const TradeAmount = ({ route }) => {
                 </View>
 
                 <Text style={{
-                    marginTop: 80,
+                    marginTop: 60,
                     fontSize: SIZES.font,
                     color: COLORS.blue,
                     fontWeight: 'bold',
@@ -122,16 +152,11 @@ const TradeAmount = ({ route }) => {
             <Text>
                 Sell : {sellAmount}  {sellToken}
             </Text>
+            <Text>NativeBalance: {nativeBalance} </Text>
 
             <ButtonCTA label="Execute Trade" handlePress={() => { }} />
 
-
-
         </ScrollView>
-
-
-
-
 
     )
 }

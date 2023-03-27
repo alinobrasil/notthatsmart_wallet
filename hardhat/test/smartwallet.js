@@ -69,6 +69,19 @@ describe("Testing Smart wallet....", () => {
         let wethBalance = await weth.balanceOf(walletcontract.address);
         console.log("smartWallet WMATIC balance: ", CleanNum(wethBalance), "WMATIC")
 
+        console.log("sending native matic to smart wallet")
+        //get some wmatic ready: Send WETH and then send from smartwallet to WMATIC contract
+        await accounts[0].sendTransaction({
+            to: walletcontract.address,
+            value: ethers.utils.parseEther("1000")
+        })
+
+        console.log("wallet sends native matic to WMATIC contract, expecting to get some wmatic")
+        //send native matic to wmatic. will automatically receive WMATIc back.
+        await walletcontract.withdraw(ethers.utils.parseEther("1000"), weth.address)
+        wethBalance = await weth.balanceOf(walletcontract.address);
+        console.log("smartWallet WMATIC balance: ", CleanNum(wethBalance), "WMATIC")
+
     })
 
     // //basic wallet function: send/receive
@@ -172,29 +185,29 @@ describe("Testing Smart wallet....", () => {
 
     })
 
-    // //Swap functionality (uniswap)
-    // it("swap WMATIC to DAI", async () => {
-    //     console.log("\n-----Testing Swap: WMATIC to DAI-----")
+    //Swap functionality (uniswap)
+    it("swap WMATIC to DAI", async () => {
+        console.log("\n-----Testing Swap: WMATIC to DAI-----")
 
-    //     //send some weth (WMATIC) to accounts[0]
-    //     await weth
-    //         .connect(whale_signer)
-    //         .transfer(walletcontract.address, amountIn);
-    //     let wethBalance = await weth.balanceOf(walletcontract.address);
-    //     console.log("Starting WMATIC balance: ", CleanNum(wethBalance))
+        //send some weth (WMATIC) to accounts[0]
+        await weth
+            .connect(whale_signer)
+            .transfer(walletcontract.address, amountIn);
+        let wethBalance = await weth.balanceOf(walletcontract.address);
+        console.log("Starting WMATIC balance: ", CleanNum(wethBalance))
 
-    //     let daiBalance = await dai.balanceOf(walletcontract.address);
-    //     console.log("Starting Dai balance: ", daiBalance.toString(), "DAI")
+        let daiBalance = await dai.balanceOf(walletcontract.address);
+        console.log("Starting Dai balance: ", daiBalance.toString(), "DAI")
 
-    //     //execute trade. WMATIC --> dai
-    //     await walletcontract.swapExactInputSingle(
-    //         amountIn,
-    //         WETH9,
-    //         DAI)
-    //     daiBalance = await dai.balanceOf(walletcontract.address)
-    //     console.log("new Dai balance: ", CleanNum(daiBalance), "DAI")
+        //execute trade. WMATIC --> dai
+        await walletcontract.swapExactInputSingle(
+            amountIn,
+            WETH9,
+            DAI)
+        daiBalance = await dai.balanceOf(walletcontract.address)
+        console.log("new Dai balance: ", CleanNum(daiBalance), "DAI")
 
-    // })
+    })
 
     it("Unauthorized swap", async () => {
         console.log("\nUnauthorized swap-----")

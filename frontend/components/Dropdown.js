@@ -5,11 +5,11 @@ import { SIZES, COLORS } from '../constants/theme'
 import triangle from '../assets/sort-down.png'
 
 
-const tokenList = ['USDT', 'USDC', 'WBTC', 'WETH', 'DAI', 'LINK', 'CRV', 'ATOM', 'AAVE', 'MATIC']
+const tokenList = ['USDT', 'USDC', 'WBTC', 'WETH', 'DAI', 'LINK', 'CRV', 'ATOM', 'AAVE', 'WMATIC']
 
 const Dropdown = ({ selectedItem = "USDT", setItem }) => {
     return (
-        <View style={{ width: 120 }}>
+        <View style={{ width: 140 }}>
             <ModalDropdown options={tokenList}
                 animated={true}
                 defaultValue={selectedItem}
