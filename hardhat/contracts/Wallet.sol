@@ -9,6 +9,7 @@ import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol"; //v0.6.0
 import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol"; //0.7.5
 
 import "./interfaces/quickswap/UniswapInterfaces.sol";
+import "./interfaces/WETH/IWETH.sol";
 
 contract Wallet {
     address payable public owner;
@@ -25,13 +26,18 @@ contract Wallet {
     address private constant FACTORY =
         0x5757371414417b8C6CAad45bAeF941aBc7d3Ab32;
 
+    address private constant WMATIC =
+        0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;
+
     constructor() public {
         owner = payable(msg.sender);
         // aaveLendingPoolAddr = 0x8dFf5E27EA6b7AC08EbFdf9eB090F32ee9a30fcf;
     }
 
-    // be able to receive native eth tokens
-    receive() external payable {}
+    //any native MATIC received gets converted to WMATIC
+    receive() external payable {
+        IWETH(WMATIC).deposit{value: msg.value}();
+    }
 
     // function getBalance() external view returns (uint256) {
     //     return address(this).balance;
