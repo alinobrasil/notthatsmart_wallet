@@ -9,17 +9,25 @@ import AppContext from '../../context';
 import { ethers } from 'ethers';
 import { CleanNumber } from '../../utils/calculations';
 import { tokens } from '../../constants/assets';
+import { getAmountOut } from '../../utils/uniswapQuotes';
+import { debounce } from 'lodash'; // Import the lodash library
+
 
 const TradeAmount = ({ route }) => {
     const symbol = route.params.symbol;
     const action = route.params.action;
 
-    const [buyToken, setBuyToken] = useState("")
+    const [buyToken, setBuyToken] = useState()
     const [buyAmount, setBuyAmount] = useState(0)
 
-    const [sellToken, setSellToken] = useState("")
+    const [sellToken, setSellToken] = useState()
     const [sellAmount, setSellAmount] = useState(0)
     const [sellTokenBalance, setSellTokenBalance] = useState(0)
+
+    //update sellAmount 1 second after user stop typing
+    const dbSetSellAmount = debounce((text) => {
+        setSellAmount(text);
+    }, 1000);
 
     const [nativeBalance, setNativeBalance] = useState(0)
 
@@ -34,23 +42,6 @@ const TradeAmount = ({ route }) => {
         balance = CleanNumber(balance.toString())
         console.log(balance)
         setNativeBalance(balance)
-    }
-
-    getTokenBalance = async (token) => {
-
-        // get token address
-
-
-    }
-
-
-
-    // When user edits buy amount, calculate how much they'd have to pay based on current price
-    const changedBuyAmount = (amount) => {
-
-    }
-
-    const changedSellAmount = (amount) => {
     }
 
 
@@ -79,7 +70,7 @@ const TradeAmount = ({ route }) => {
 
 
     useEffect(() => {
-
+        //initialize buy and sell tokens
         if (action === "buy") {
             setBuyToken(symbol)
             setSellToken(getDefaultSellToken())
@@ -87,11 +78,30 @@ const TradeAmount = ({ route }) => {
             setSellToken(symbol)
             setBuyToken(getDefaultBuyToken())
         }
-
         getNativeBalance()
-
-
     }, []);
+
+    //Fetch swap prices
+    useEffect(() => {
+        const fetchSwapPrices = async () => {
+            try {
+                console.log("\n\nSell: ", sellToken, sellAmount);
+                console.log("Buy: ", buyToken, buyAmount);
+                if (sellAmount > 0 && sellToken !== buyToken) {
+                    const amountOut = await getAmountOut(
+                        tokens[sellToken.toLowerCase()].address,
+                        tokens[buyToken.toLowerCase()].address,
+                        sellAmount
+                    );
+                    setBuyAmount(Number(amountOut).toFixed(4));
+                }
+            } catch (e) {
+                console.log(e);
+            }
+        };
+
+        fetchSwapPrices();
+    }, [sellAmount, sellToken, buyToken]);
 
 
 
@@ -123,7 +133,7 @@ const TradeAmount = ({ route }) => {
 
 
                 <View style={{ flexDirection: 'row' }}>
-                    <AmountInput setAmount={setBuyAmount} width={160} />
+                    <AmountInput setAmount={setBuyAmount} width={160} amount={buyAmount} />
                     <Dropdown selectedItem={getDefaultBuyToken()} setItem={setBuyToken} />
                 </View>
 
@@ -137,7 +147,7 @@ const TradeAmount = ({ route }) => {
                 </Text>
 
                 <View style={{ flexDirection: 'row', }}>
-                    <AmountInput setAmount={setSellAmount} width={160} />
+                    <AmountInput setAmount={dbSetSellAmount} width={160} amount={sellAmount} />
                     <Dropdown selectedItem={getDefaultSellToken()} setItem={setSellToken} />
                 </View>
             </View>

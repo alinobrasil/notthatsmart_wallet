@@ -2,12 +2,13 @@ import { View, TextInput } from 'react-native'
 import React from 'react'
 import { SIZES, COLORS } from '../constants/theme'
 
-const AmountInput = ({ setAmount, width = 200 }) => {
+const AmountInput = ({ amount, setAmount, width = 200 }) => {
     return (
         <View>
             <TextInput defaultValue='0'
+                value={amount}
                 fontSize={SIZES.medium}
-                onChangeText={t => setAmount(t)}
+                onChangeText={t => setAmount(Number(t))}
                 style={{
                     margin: 10,
                     padding: 10,

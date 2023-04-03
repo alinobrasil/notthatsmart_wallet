@@ -16,26 +16,26 @@ const tokens = {
         image: aavelogo,
         description: "Token of the largest defi protocol",
     },
-    atom: {
-        address: "0xac51C4c48Dc3116487eD4BC16542e27B5694Da1b",
-        image: atomlogo,
-        description: "Token powering the Cosmos ecosystem"
-    },
-    crv: {
-        address: "0x172370d5Cd63279eFa6d502DAB29171933a610AF",
-        image: crvlogo,
-        description: `Biggest crypto "bonds" distributor in DeFi`
-    },
+    // atom: {
+    //     address: "0xac51C4c48Dc3116487eD4BC16542e27B5694Da1b",
+    //     image: atomlogo,
+    //     description: "Token powering the Cosmos ecosystem"
+    // },
+    // crv: {
+    //     address: "0x172370d5Cd63279eFa6d502DAB29171933a610AF",
+    //     image: crvlogo,
+    //     description: `Biggest crypto "bonds" distributor in DeFi`
+    // },
     dai: {
         address: "0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063",
         image: dailogo,
         description: "Largest algorithmic stablecoin"
     },
-    link: {
-        address: "0xb0897686c545045aFc77CF20eC7A532E3120E0F1",
-        image: linklogo,
-        description: "Powers the largest oracle network"
-    },
+    // link: {
+    //     address: "0xb0897686c545045aFc77CF20eC7A532E3120E0F1",
+    //     image: linklogo,
+    //     description: "Powers the largest oracle network"
+    // },
     wmatic: {
         address: "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
         image: maticlogo,

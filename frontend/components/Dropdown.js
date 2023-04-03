@@ -3,9 +3,11 @@ import React from 'react'
 import ModalDropdown from 'react-native-modal-dropdown';
 import { SIZES, COLORS } from '../constants/theme'
 import triangle from '../assets/sort-down.png'
+import { tokens } from '../constants/assets';
 
-
-const tokenList = ['USDT', 'USDC', 'WBTC', 'WETH', 'DAI', 'LINK', 'CRV', 'ATOM', 'AAVE', 'WMATIC']
+const tokenList = Object.keys(tokens).map((key) => {
+    return key.toUpperCase()
+})
 
 const Dropdown = ({ selectedItem = "USDT", setItem }) => {
     return (
@@ -27,7 +29,7 @@ const Dropdown = ({ selectedItem = "USDT", setItem }) => {
                 }}
                 dropdownStyle={{
                     width: 150,
-                    height: 300,
+                    height: 250,
                     borderColor: "black"
                 }}
                 renderSeparator={() => { }}

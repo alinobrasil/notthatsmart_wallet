@@ -4,7 +4,7 @@ import { View, Text } from 'react-native'
 import { VANITY_ETH } from "./key";
 
 import AppContext from "./context";
-import WalletArtifact from './constants/WalletContractArtifact.json'
+
 // Import the crypto getRandomValues shim (**BEFORE** the shims)
 import "react-native-get-random-values"
 // Pull in the shims (BEFORE importing ethers)
