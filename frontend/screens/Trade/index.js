@@ -1,11 +1,15 @@
 import { View, Text, SafeAreaView, FlatList, TouchableOpacity, StyleSheet, Image } from 'react-native'
-import React from 'react'
+import { useEffect } from 'react'
 import { SIZES, COLORS } from '../../constants/theme'
 import { createStackNavigator } from '@react-navigation/stack';
 import { aave, atom, crv, dai, link, matic, usdc, usdt, wbtc, weth } from '../../assets/tokenlogo'
 import BuyOrSellScreen from './BuyOrSellScreen';
 import TitleText from '../../components/TitleText';
 import TradeAmount from './TradeAmount';
+import TradeConfirmed from './TradeConfirmed';
+import { tokens } from '../../constants/assets';
+import { COINMARKETCAP_KEY } from '../../key';
+import axios from 'axios';
 
 const Stack = createStackNavigator();
 
@@ -18,11 +22,58 @@ const TradeStack = () => {
             <Stack.Screen name="TradeRoot" component={TradeRoot} />
             <Stack.Screen name="BuyOrSellScreen" component={BuyOrSellScreen} />
             <Stack.Screen name="TradeAmount" component={TradeAmount} />
+            <Stack.Screen name="TradeConfirmed" component={TradeConfirmed} />
         </Stack.Navigator>
     )
 }
 
 const TradeRoot = ({ navigation }) => {
+
+    let tradableTokens = []
+
+    const getPrices = async () => {
+        //getting quick prices from coinmarketcap
+        let symbols = Object.keys(tokens);
+        let symbollist = symbols.join(',');
+        console.log("symbollist:", symbollist)
+
+        let response;
+        try {
+            response = await axios.get('https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest', {
+                headers: {
+                    'X-CMC_PRO_API_KEY': COINMARKETCAP_KEY,
+                },
+                params: {
+                    symbol: symbollist,
+                }
+            });
+        } catch (ex) {
+            console.log(ex);
+        }
+        if (response) {
+            // success
+            const results = response.data.data;
+            for (let symbol in results) {
+                // console.log(symbol, results[symbol][0].quote.USD.price)
+                let price = results[symbol][0].quote.USD.price
+                let tokenObj = {
+                    name: symbol,
+                    price: price.toFixed(2),
+                    logo: tokens[symbol.toLowerCase()].image
+                }
+                tradableTokens.push(tokenObj)
+            }
+
+            console.log("Tradeable tokens:")
+            console.log(tradableTokens)
+        }
+    }
+
+    useEffect(() => {
+        //fetch prices when component mounts
+        getPrices();
+    }, [])
+
     return (
         <SafeAreaView style={{
             flex: 1,
@@ -46,7 +97,7 @@ const TradeRoot = ({ navigation }) => {
                 marginTop: 20
             }}>
                 <FlatList
-                    data={dummyData}
+                    data={tradableTokens}
                     renderItem={({ item }) => renderItem({ item, navigation })}
                     ListHeaderComponent={listHeader}
                     style={{
@@ -72,8 +123,7 @@ const renderItem = ({ item, navigation }) => {
                 onPress={() => navigation.navigate(
                     'BuyOrSellScreen',
                     { symbol: item.name }
-                )
-                }
+                )}
             >
                 <Text style={styles.button}>Trade </Text>
             </TouchableOpacity>
@@ -95,32 +145,6 @@ const listHeader = () => {
         </View>
     )
 }
-
-const dummyData = [
-    {
-        name: "WBTC",
-        price: 25000.23,
-        logo: wbtc
-    },
-    {
-        name: "WETH",
-        price: 1323.23,
-        logo: weth
-    },
-    {
-        name: "WMATIC",
-        price: 1.23,
-        logo: matic
-    },
-    {
-        name: "USDT",
-        price: 1.01,
-        logo: usdt
-    },
-
-]
-
-
 
 const styles = StyleSheet.create({
     container: {
@@ -158,5 +182,31 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
 });
+
+
+// const dummyData = [
+//     {
+//         name: "WBTC",
+//         price: 25000.23,
+//         logo: wbtc
+//     },
+//     {
+//         name: "WETH",
+//         price: 1323.23,
+//         logo: weth
+//     },
+//     {
+//         name: "WMATIC",
+//         price: 1.23,
+//         logo: matic
+//     },
+//     {
+//         name: "USDT",
+//         price: 1.01,
+//         logo: usdt
+//     },
+
+// ]
+
 
 export default TradeStack

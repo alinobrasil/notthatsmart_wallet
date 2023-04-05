@@ -24,7 +24,7 @@ describe("Loading WMATIC", function () {
     })
 
     it("Receive MATIC / Convert to WMATIC", async () => {
-        const amount = ethers.utils.parseEther("100");
+        const amount = ethers.utils.parseEther("9000");
         await accounts[0].sendTransaction({
             to: walletcontract.address,
             value: amount,

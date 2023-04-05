@@ -11,9 +11,10 @@ import { CleanNumber } from '../../utils/calculations';
 import { tokens } from '../../constants/assets';
 import { getAmountOut } from '../../utils/uniswapQuotes';
 import { debounce } from 'lodash'; // Import the lodash library
+import IERC20Artifact from '../../constants/artifacts/IERC20.json';
+import ERC20Artifact from '../../constants/artifacts/ERC20.json';
 
-
-const TradeAmount = ({ route }) => {
+const TradeAmount = ({ route, navigation }) => {
     const symbol = route.params.symbol;
     const action = route.params.action;
 
@@ -30,17 +31,30 @@ const TradeAmount = ({ route }) => {
     }, 1000);
 
     const [nativeBalance, setNativeBalance] = useState(0)
+    const [walletWMATIC, setWalletWMATIC] = useState(0)
 
     const context = useContext(AppContext);
-    const { provider, signer } = context;
+    const { provider, signer, wallet } = context;
 
-    // console.log(provider)
+
+    const getWalletBalance = async () => {
+        const wmatic = new ethers.Contract(
+            tokens.wmatic.address,
+            IERC20Artifact.abi,
+            provider
+        )
+
+        let wmaticBalance = await wmatic.balanceOf(wallet.address);
+        wmaticBalance = ethers.utils.formatEther(wmaticBalance.toString())
+        console.log("wallet WMATIC balance: ", wmaticBalance)
+        setWalletWMATIC(wmaticBalance)
+    }
 
     const getNativeBalance = async () => {
         let balance = await signer.getBalance();
         // console.log(balance)
         balance = CleanNumber(balance.toString())
-        console.log(balance)
+        console.log("accounts0 balance:", balance, "MATIC")
         setNativeBalance(balance)
     }
 
@@ -60,11 +74,60 @@ const TradeAmount = ({ route }) => {
     const getDefaultSellToken = () => {
         if (action === "sell") {
             return symbol
-        } else if (symbol === "USDC") {
+        } else if (symbol === "WMATIC") {
             return "USDT"
         } else {
-            return "USDC"
+            return "WMATIC"
         }
+    }
+
+    const executeTrade = async () => {
+        //if it's ok to execute trade, then execute trade
+        console.log("executing trade ....")
+
+        try {
+            tx = await wallet.swapExactInputSingle(
+                ethers.utils.parseEther(sellAmount.toString()),
+                tokens[sellToken.toLowerCase()].address,
+                tokens[buyToken.toLowerCase()].address
+            );
+
+            console.log(tx);
+
+            const boughtToken = new ethers.Contract(
+                tokens[buyToken.toLowerCase()].address,
+                ERC20Artifact.abi,
+                provider
+            )
+
+            const boughtTokenDecimals = await boughtToken.decimals();
+            const boughtTokenSymbol = await boughtToken.symbol();
+
+            let boughtTokenBalance = await boughtToken.balanceOf(wallet.address);
+            boughtTokenBalance = ethers.utils.formatUnits(boughtTokenBalance.toString(), boughtTokenDecimals)
+            console.log("bought token balance: ", boughtTokenBalance, boughtTokenSymbol)
+
+            checkBalances(); //just to show display on screen
+
+            navigation.navigate(
+                "TradeConfirmed",
+                {
+                    paidAmount: sellAmount,
+                    paidToken: sellToken,
+                    receivedAmount: buyAmount,
+                    receivedToken: buyToken,
+                })
+
+        } catch (e) {
+            console.log(e)
+        }
+
+        console.log("...the end")
+    }
+
+    const checkBalances = () => {
+        getNativeBalance();
+        getWalletBalance();
     }
 
 
@@ -78,14 +141,19 @@ const TradeAmount = ({ route }) => {
             setSellToken(symbol)
             setBuyToken(getDefaultBuyToken())
         }
-        getNativeBalance()
+        getNativeBalance();
+
+
+        //show wallet balance
+        getWalletBalance();
     }, []);
 
     //Fetch swap prices
     useEffect(() => {
         const fetchSwapPrices = async () => {
             try {
-                console.log("\n\nSell: ", sellToken, sellAmount);
+                console.log("\n\n------------")
+                console.log("Sell: ", sellToken, sellAmount);
                 console.log("Buy: ", buyToken, buyAmount);
                 if (sellAmount > 0 && sellToken !== buyToken) {
                     const amountOut = await getAmountOut(
@@ -152,19 +220,7 @@ const TradeAmount = ({ route }) => {
                 </View>
             </View>
 
-
-            {/* Just for checking state variables */}
-            <Text style={{
-                marginTop: 20,
-            }}>
-                Buy : {buyAmount} {buyToken}
-            </Text>
-            <Text>
-                Sell : {sellAmount}  {sellToken}
-            </Text>
-            <Text>NativeBalance: {nativeBalance} </Text>
-
-            <ButtonCTA label="Execute Trade" handlePress={() => { }} />
+            <ButtonCTA label="Execute Trade" handlePress={executeTrade} />
 
         </ScrollView>
 

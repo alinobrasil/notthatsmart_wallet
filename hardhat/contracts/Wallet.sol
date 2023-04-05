@@ -121,6 +121,7 @@ contract Wallet {
 
         // The call to `exactInputSingle` executes the swap.
         amountOut = swapRouter.exactInputSingle(params);
+        return amountOut;
     }
 
     function addLiquidity(
