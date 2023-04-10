@@ -5,33 +5,83 @@ import PercentBox from '../../components/PercentBox'
 import AppContext from '../../context'
 import { CleanNumber } from '../../utils/calculations'
 import AmountInput from '../../components/AmountInput'
+import { ethers } from "ethers";
+import { tokens } from '../../constants/assets'
+import ERC20Artifact from '../../constants/artifacts/ERC20.json'
+import ButtonCTA from '../../components/ButtonCTA'
 
 const SavingsDeposit = ({ route, navigation }) => {
-    const [chosenPct, setChosenPct] = useState(0)
-    const [amount, setAmount] = useState("0")
-
     const context = useContext(AppContext);
-    const { provider, signer } = context;
+    const { provider, signer, wallet } = context;
 
-    const getBalance = async () => {
+    const symbol = route.params.symbol;
+    const rate = route.params.rate;
+    const tokenContract = new ethers.Contract(
+        tokens[symbol.toLowerCase()].address,
+        ERC20Artifact.abi,
+        provider
+    )
+
+    const [chosenPct, setChosenPct] = useState(0)
+    const [inputAmount, setInputAmount] = useState(0)
+    const [tokenBalance, setTokenBalance] = useState("0")
+
+    const getAccount0Balance = async () => {
         try {
+            //showing accounts0 native wmatic balance
             const x = await provider.getBalance(signer.address);
             console.log("\n\n")
-            console.log(x)
-            console.log("string:", x.toString())
-            console.log("clean: ", CleanNumber(x))
-            setAmount(CleanNumber(x))
+            console.log("account0 native wmatic: ", CleanNumber(x))
         }
         catch (e) {
             console.log(e)
         }
     }
 
-
-    const handlePress = (pctValue) => {
+    const handlePress = async (pctValue) => {
+        console.log(`${pctValue}% x ${tokenBalance} = ${tokenBalance * pctValue / 100}`)
         setChosenPct(pctValue)
-        getBalance()
+        setInputAmount(tokenBalance * pctValue / 100)
+
     }
+
+    // useEffect(() => {
+    //     console.log("inputAmount: ", inputAmount)
+    // }, [inputAmount])
+
+    const getTokenBalance = async () => {
+        let balance = await tokenContract.balanceOf(wallet.address);
+        balance = ethers.utils.formatEther(balance.toString())
+        balance = Number(balance).toFixed(4)
+        console.log(`Wallet's balance of ${symbol}: ${balance}`)
+        setTokenBalance(balance)
+    }
+
+    const executeDeposit = async () => {
+        console.log("Executing deposit...")
+        let tx = await wallet.aave_deposit(
+            tokenContract.address,
+            ethers.utils.parseUnits(inputAmount.toString(), await tokenContract.decimals()),
+        )
+
+        console.log("Done------------------")
+        console.log(`Deposit tx: ${tx.hash}`)
+        console.log(tx)
+        console.log("Token contract address: ", tokenContract.address)
+        console.log("Amount to deposit: ", ethers.utils.parseUnits(inputAmount.toString(), await tokenContract.decimals()))
+
+        navigation.navigate('SavingsConfirmed',
+            {
+                rate: rate,
+                symbol: symbol,
+            })
+
+    }
+
+    useEffect(() => {
+        getAccount0Balance()
+        getTokenBalance();
+    }, [])
 
     return (
         <ScrollView>
@@ -84,28 +134,16 @@ const SavingsDeposit = ({ route, navigation }) => {
                     alignItems: 'center'
                 }}>
 
-                    {/* <TextInput defaultValue='0'
-                        fontSize={SIZES.medium}
-                        onChangeText={t => setAmount(t)}
-                        style={{
-                            margin: 10,
-                            padding: 10,
-                            borderColor: "#000000",
-                            borderBottomWidth: 1,
-                            width: 200,
-                            textAlign: 'right',
-                            color: COLORS.red,
-
-                        }}
-                    /> */}
-                    <AmountInput setAmount={setAmount} />
-
+                    <AmountInput setAmount={setInputAmount} inputAmount={inputAmount} />
 
                     <Text style={{ fontSize: SIZES.medium }} >
-                        {route.params.symbol}
+                        {symbol}
                     </Text>
 
                 </View>
+
+                <Text> You have {tokenBalance} {symbol} available in your wallet. </Text>
+
 
 
                 {/* Percentage boxes */}
@@ -121,9 +159,14 @@ const SavingsDeposit = ({ route, navigation }) => {
                     <PercentBox percentValue="100" handlePress={() => handlePress(100)} />
                 </View>
 
-                <Text> Wallet Amount (Native): {amount} </Text>
-                <Text> Chosen %: {chosenPct} </Text>
-                <Text> Asset Amount: </Text>
+                <View style={{ marginTop: 50 }}>
+
+                    <ButtonCTA label='Deposit' handlePress={executeDeposit} />
+
+                    <Text>You'll be earning {rate}% per year.</Text>
+                </View>
+
+
 
             </SafeAreaView>
 

@@ -72,7 +72,7 @@ const TradeRoot = ({ navigation }) => {
     useEffect(() => {
         //fetch prices when component mounts
         getPrices();
-    }, [])
+    }, [navigation])
 
     return (
         <SafeAreaView style={{

@@ -77,13 +77,16 @@ const SavingsScreen = ({ navigation }) => {
                     <AssetButton assetname="weth" interestRate={rates.WETH}
                         handlePress={() => navigation.navigate(
                             'SavingsDeposit',
-                            { symbol: "WETH" }
+                            {
+                                symbol: "WETH",
+                                rate: rates.WETH,
+                            }
                         )} />
                     <AssetButton assetname="usdc" interestRate={rates.USDC} />
                     <AssetButton assetname="usdt" interestRate={rates.USDT} />
                     {/* <AssetButton assetname="atom" interestRate={rates.ATOM} /> */}
-                    <AssetButton assetname="crv" interestRate={rates.CRV} />
-                    <AssetButton assetname="link" interestRate={rates.LINK} />
+                    {/* <AssetButton assetname="crv" interestRate={rates.CRV} /> */}
+                    {/* <AssetButton assetname="link" interestRate={rates.LINK} /> */}
                     <AssetButton assetname="dai" interestRate={rates.DAI} />
                     <AssetButton assetname="wbtc" interestRate={rates.WBTC} />
                 </View>

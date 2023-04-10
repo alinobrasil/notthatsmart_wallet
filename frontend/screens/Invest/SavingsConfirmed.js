@@ -5,14 +5,11 @@ import { SIZES, COLORS } from '../../constants/theme'
 import TitleText from '../../components/TitleText';
 import ButtonCTA from '../../components/ButtonCTA';
 
-const TradeConfirmed = ({ route, navigation }) => {
+const SavingsConfirmed = ({ route, navigation }) => {
 
-    const paidAmount = route.params.paidAmount
-    const paidToken = route.params.paidToken
-    const receivedAmount = route.params.receivedAmount
-    const receivedToken = route.params.receivedToken
-
-    const confirmationMessage = `You pai ${paidAmount} ${paidToken} and received ${receivedAmount} ${receivedToken}`
+    const symbol = route.params.symbol;
+    const rate = route.params.rate;
+    const confirmationMessage = `You are now earning ${Number(rate).toFixed(2) * 100}% on your ${symbol}`
 
     return (
         <View style={{
@@ -20,7 +17,7 @@ const TradeConfirmed = ({ route, navigation }) => {
             alignContent: 'center',
             padding: 30,
         }}>
-            <TitleText theText='Trade Successful' />
+            <TitleText theText='Deposit Successful' />
             <Image source={GreenCheck} style={{
                 width: 200,
                 height: 200,
@@ -39,4 +36,4 @@ const TradeConfirmed = ({ route, navigation }) => {
     )
 }
 
-export default TradeConfirmed
+export default SavingsConfirmed

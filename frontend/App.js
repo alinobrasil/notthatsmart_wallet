@@ -32,7 +32,7 @@ import WalletArtifact from './constants/artifacts/Wallet.json';
 
 //hardhat private key
 const PRIVATE_KEY = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
-const deployedWalletAddress = "0xD83C9f1B0DaFb1992eF92ac62D6509e54AD4eD48"
+const deployedWalletAddress = "0x1f720E7952650ED8Ca142feBD52aCBe8b7A21741"
 
 const POLYGON_MAINNET_URL = Config.POLYGON_MAINNET_URL;
 console.log("\n\n##ENV VARIABLES")

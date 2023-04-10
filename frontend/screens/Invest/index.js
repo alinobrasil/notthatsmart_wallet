@@ -7,6 +7,7 @@ import InvestRoot from './InvestRoot';
 import SavingsScreen from './Savings'
 import EarnTradingFeesScreen from './EarnTradingFees'
 import SavingsDeposit from './SavingsDeposit';
+import SavingsConfirmed from './SavingsConfirmed';
 
 const Stack = createStackNavigator();
 
@@ -20,6 +21,7 @@ const InvestStack = () => {
 
             <Stack.Screen name="SavingsScreen" component={SavingsScreen} />
             <Stack.Screen name="SavingsDeposit" component={SavingsDeposit} />
+            <Stack.Screen name="SavingsConfirmed" component={SavingsConfirmed} />
 
 
             <Stack.Screen name="EarnTradingFeesScreen" component={EarnTradingFeesScreen} />

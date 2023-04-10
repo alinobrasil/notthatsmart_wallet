@@ -50,6 +50,22 @@ const TradeAmount = ({ route, navigation }) => {
         setWalletWMATIC(wmaticBalance)
     }
 
+    const getSellTokenBalance = async () => {
+        const sellTokenContract = new ethers.Contract(
+            tokens[sellToken.toLowerCase()].address,
+            ERC20Artifact.abi,
+            provider
+        )
+
+        let sellTokenBalance = await sellTokenContract.balanceOf(wallet.address);
+        let sellTokenDecimals = await sellTokenContract.decimals();
+        console.log("sellTokenDecimals", sellTokenDecimals)
+        sellTokenBalance = ethers.utils.formatUnits(sellTokenBalance.toString(), sellTokenDecimals)
+        sellTokenBalance = sellTokenBalance.toString()
+        console.log("wallet", sellToken, "balance: ", sellTokenBalance)
+        setSellTokenBalance(sellTokenBalance)
+    }
+
     const getNativeBalance = async () => {
         let balance = await signer.getBalance();
         // console.log(balance)
@@ -86,7 +102,7 @@ const TradeAmount = ({ route, navigation }) => {
         console.log("executing trade ....")
 
         try {
-            tx = await wallet.swapExactInputSingle(
+            let tx = await wallet.swapExactInputSingle(
                 ethers.utils.parseEther(sellAmount.toString()),
                 tokens[sellToken.toLowerCase()].address,
                 tokens[buyToken.toLowerCase()].address
@@ -141,11 +157,12 @@ const TradeAmount = ({ route, navigation }) => {
             setSellToken(symbol)
             setBuyToken(getDefaultBuyToken())
         }
-        getNativeBalance();
 
+        getNativeBalance();
 
         //show wallet balance
         getWalletBalance();
+
     }, []);
 
     //Fetch swap prices
@@ -170,6 +187,19 @@ const TradeAmount = ({ route, navigation }) => {
 
         fetchSwapPrices();
     }, [sellAmount, sellToken, buyToken]);
+
+
+    //update selltoken balance, only when user chooses a  different token to sell (Pay with)
+    useEffect(() => {
+        try {
+            if (sellToken) {
+                console.log("Selltoken changed to: ", sellToken)
+                getSellTokenBalance();
+            }
+        } catch (e) {
+            console.log(e)
+        }
+    }, [sellToken])
 
 
 
@@ -201,7 +231,7 @@ const TradeAmount = ({ route, navigation }) => {
 
 
                 <View style={{ flexDirection: 'row' }}>
-                    <AmountInput setAmount={setBuyAmount} width={160} amount={buyAmount} />
+                    <AmountInput setAmount={setBuyAmount} width={160} inputAmount={buyAmount} />
                     <Dropdown selectedItem={getDefaultBuyToken()} setItem={setBuyToken} />
                 </View>
 
@@ -215,9 +245,16 @@ const TradeAmount = ({ route, navigation }) => {
                 </Text>
 
                 <View style={{ flexDirection: 'row', }}>
-                    <AmountInput setAmount={dbSetSellAmount} width={160} amount={sellAmount} />
+                    <AmountInput setAmount={dbSetSellAmount} width={160} inputAmount={sellAmount} />
                     <Dropdown selectedItem={getDefaultSellToken()} setItem={setSellToken} />
                 </View>
+
+                <Text style={{
+                    marginLeft: 10,
+                }}>
+                    Your have {sellTokenBalance} {sellToken} available.
+                </Text>
+
             </View>
 
             <ButtonCTA label="Execute Trade" handlePress={executeTrade} />
