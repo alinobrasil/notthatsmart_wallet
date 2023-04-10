@@ -1,21 +1,14 @@
 import { View, TextInput } from 'react-native'
-import React, { useEffect, useState } from 'react'
 import { SIZES, COLORS } from '../constants/theme'
 
-const AmountInput = ({ inputAmount, setAmount, width = 200 }) => {
-
-    // const [inputValue, setInputValue] = useState(inputAmount);
-
-    // useEffect(() => {
-    //     setInputValue(inputAmount)
-    // }, [inputAmount])
+const InputSavings = ({ inputAmount, setAmount, width = 200 }) => {
 
 
     return (
         <View>
             <TextInput
                 // defaultValue='0'
-                value={inputAmount}
+                value={inputAmount.toString()}
                 fontSize={SIZES.medium}
                 onChangeText={t => setAmount(Number(t))}
                 style={{
@@ -32,4 +25,4 @@ const AmountInput = ({ inputAmount, setAmount, width = 200 }) => {
     )
 }
 
-export default AmountInput
+export default InputSavings

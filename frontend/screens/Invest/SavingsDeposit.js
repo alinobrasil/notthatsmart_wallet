@@ -4,7 +4,7 @@ import { useContext, useState, useEffect } from 'react'
 import PercentBox from '../../components/PercentBox'
 import AppContext from '../../context'
 import { CleanNumber } from '../../utils/calculations'
-import AmountInput from '../../components/AmountInput'
+import InputSavings from '../../components/InputSavings'
 import { ethers } from "ethers";
 import { tokens } from '../../constants/assets'
 import ERC20Artifact from '../../constants/artifacts/ERC20.json'
@@ -41,13 +41,12 @@ const SavingsDeposit = ({ route, navigation }) => {
     const handlePress = async (pctValue) => {
         console.log(`${pctValue}% x ${tokenBalance} = ${tokenBalance * pctValue / 100}`)
         setChosenPct(pctValue)
-        setInputAmount(tokenBalance * pctValue / 100)
-
+        setInputAmount(Number(tokenBalance * pctValue / 100).toFixed(4))
     }
 
-    // useEffect(() => {
-    //     console.log("inputAmount: ", inputAmount)
-    // }, [inputAmount])
+    useEffect(() => {
+        console.log("inputAmount: ", inputAmount)
+    }, [inputAmount])
 
     const getTokenBalance = async () => {
         let balance = await tokenContract.balanceOf(wallet.address);
@@ -134,7 +133,7 @@ const SavingsDeposit = ({ route, navigation }) => {
                     alignItems: 'center'
                 }}>
 
-                    <AmountInput setAmount={setInputAmount} inputAmount={inputAmount} />
+                    <InputSavings setAmount={setInputAmount} inputAmount={inputAmount} />
 
                     <Text style={{ fontSize: SIZES.medium }} >
                         {symbol}
