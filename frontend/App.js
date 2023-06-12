@@ -19,20 +19,35 @@ import HomeScreen from "./screens/Home";
 import SettingsScreen from "./screens/Settings";
 import InvestStack from "./screens/Invest";
 import TradeStack from "./screens/Trade";
-
 import { Ionicons, MaterialIcons, MaterialCommunityIcons } from 'react-native-vector-icons';
 import { COLORS, SIZES } from './constants/theme'
-
 //env variables
 import Config from 'react-native-config';
 // import { PRIVATE_KEY, POLYGON_MAINNET_URL } from '@env';
 // const PRIVATE_KEY = Config.PRIVATE_KEY;
-
 import WalletArtifact from './constants/artifacts/Wallet.json';
 
-//hardhat private key
+
+
+
+//deployed Wallet Address
+const deployedWalletAddress = "0x6A312D5fFF30Fc5f05866F399aAFD37673e41e3c"
+const providerUrl = "http://192.168.2.200:8545"
+
+
+
+
+
+
+
+
+
+
+
+
+//hardhat private key for testing
 const PRIVATE_KEY = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
-const deployedWalletAddress = "0x1f720E7952650ED8Ca142feBD52aCBe8b7A21741"
+
 
 const POLYGON_MAINNET_URL = Config.POLYGON_MAINNET_URL;
 console.log("\n\n##ENV VARIABLES")
@@ -43,7 +58,7 @@ const Tab = createBottomTabNavigator();
 
 function App() {
 
-    const provider = new ethers.providers.JsonRpcProvider("http://192.168.2.15:8545");
+    const provider = new ethers.providers.JsonRpcProvider(providerUrl);
     const signer = new ethers.Wallet(PRIVATE_KEY, provider);
     const wallet = new ethers.Contract(
         deployedWalletAddress,

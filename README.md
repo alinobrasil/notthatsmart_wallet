@@ -1,6 +1,9 @@
 ## Smart Contract Wallet for onboarding new DeFi users
 - Enjoy the best of DeFi with extremely reduced risk
-- Intuitive by design
+- Intuitive for complete beginners
+
+Demo video: https://youtu.be/WKr5pZbicG4
+
 
 ## Problems solved:
 - Convenience: Simple actions like depositing to Aave to earn interest only need to be signed off once. EOA accounts require separate transactions for approve erc20 token and deposit into protocol.
@@ -27,10 +30,12 @@ npx hardhat test test/loadingWMATIC.js --network polygonfork
 ```
 
 3. Go to the frontend folder and open App.js. Right after the import statements you'll see some variables initialized. 
+
 a. Set the deployed contract wallet address you see on screen from the previous step. 
-    ```const deployedWalletAddress = "0x329058C12E8B269BFA0896c8705b427c5Dd26b96"```
+```const deployedWalletAddress = "0x329058C12E8B269BFA0896c8705b427c5Dd26b96"```
+
 b. Set your computer's IP address where the provider is initialized. Should start with 192.168.
-    ```const provider = new ethers.providers.JsonRpcProvider("http://192.168.2.200:8545");```
+```const provider = new ethers.providers.JsonRpcProvider("http://192.168.2.200:8545");```
 
 
 4.  Run the react native app with expo and you should see a QR code on screen
