@@ -14,11 +14,6 @@ const SavingsScreen = ({ navigation }) => {
                 setRates(data)
                 // console.log(JSON.stringify(rates, null, 2))
             })
-            // .then(() => {
-            //     console.log("rates yo")
-            //     console.log(rates)
-            // }
-            // )
             .catch(error => {
                 console.log("\n\n")
                 console.log(error)
@@ -28,6 +23,13 @@ const SavingsScreen = ({ navigation }) => {
     useEffect(() => {
         showRates()
     }, []);
+
+
+    // log rates when they are updated in state variable
+    useEffect(() => {
+        console.log("rates updated!")
+        console.log(rates)
+    }, [rates])
 
     return (
         <ScrollView>
@@ -70,25 +72,43 @@ const SavingsScreen = ({ navigation }) => {
 
                 <View style={{
                     justifyContent: 'space-between',
-                    // columnGap: 20,
                     display: 'flex'
                 }}>
-                    {/* <AssetButton assetname="matic" interestRate={rates.MATIC} /> */}
-                    <AssetButton assetname="weth" interestRate={rates.WETH}
+
+                    {/* <AssetButton
+                        assetname="weth"
+                        interestRate={rates.WETH}
                         handlePress={() => navigation.navigate(
                             'SavingsDeposit',
                             {
                                 symbol: "WETH",
                                 rate: rates.WETH,
                             }
-                        )} />
-                    <AssetButton assetname="usdc" interestRate={rates.USDC} />
+                        )} /> */}
+
+                    {/* <AssetButton assetname="usdc" interestRate={rates.USDC} />
                     <AssetButton assetname="usdt" interestRate={rates.USDT} />
-                    {/* <AssetButton assetname="atom" interestRate={rates.ATOM} /> */}
-                    {/* <AssetButton assetname="crv" interestRate={rates.CRV} /> */}
-                    {/* <AssetButton assetname="link" interestRate={rates.LINK} /> */}
                     <AssetButton assetname="dai" interestRate={rates.DAI} />
-                    <AssetButton assetname="wbtc" interestRate={rates.WBTC} />
+                    <AssetButton assetname="wbtc" interestRate={rates.WBTC} /> */}
+
+                    {Object.entries(rates).map(([key, value]) => {
+                        console.log(key, value)
+                        return <AssetButton
+                            assetname={key.toLowerCase()}
+                            interestRate={value}
+                            handlePress={() => navigation.navigate(
+                                'SavingsDeposit',
+                                {
+                                    symbol: key,
+                                    rate: value,
+                                }
+                            )}
+
+                        />
+                    }
+                    )}
+
+
                 </View>
 
             </SafeAreaView>

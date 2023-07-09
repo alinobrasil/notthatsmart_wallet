@@ -9,7 +9,7 @@ const SavingsConfirmed = ({ route, navigation }) => {
 
     const symbol = route.params.symbol;
     const rate = route.params.rate;
-    const confirmationMessage = `You are now earning ${Number(rate).toFixed(2) * 100}% on your ${symbol}`
+    const confirmationMessage = `You are now earning ${Number(rate).toFixed(2)}% on your ${symbol}`
 
     return (
         <View style={{

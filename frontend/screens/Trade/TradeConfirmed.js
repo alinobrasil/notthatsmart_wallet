@@ -12,7 +12,7 @@ const TradeConfirmed = ({ route, navigation }) => {
     const receivedAmount = route.params.receivedAmount
     const receivedToken = route.params.receivedToken
 
-    const confirmationMessage = `You pai ${paidAmount} ${paidToken} and received ${receivedAmount} ${receivedToken}`
+    const confirmationMessage = `You paid ${paidAmount} ${paidToken} and received ${receivedAmount} ${receivedToken}`
 
     return (
         <View style={{

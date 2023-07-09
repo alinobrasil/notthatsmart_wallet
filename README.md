@@ -18,10 +18,21 @@ Demo video: https://youtu.be/WKr5pZbicG4
 
 ## How to run in test env:
 In the hardhat folder:
-1. Run hardhat node. 
+
+1. Run hardhat node, to run a test chain that mirrors polygon mainnet. 
 ```
 export POLYGON_RPC_URL=(YOUR RPC URL)
 npx hardhat node --hostname 0.0.0.0 --fork $POLYGON_RPC_URL
+```
+
+1.5. in hardhat config, set the ip address of the network polygonfork to your own computer's network. 
+ 
+```
+polygonfork: {
+            url: 'http://192.168.2.200:8545',
+            accounts: ['0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80',
+                '0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d']
+        }
 ```
 
 2. run hardhat test to deploy wallet

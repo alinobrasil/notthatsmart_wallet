@@ -29,24 +29,13 @@ import WalletArtifact from './constants/artifacts/Wallet.json';
 
 
 
-
-//deployed Wallet Address
-const deployedWalletAddress = "0x6A312D5fFF30Fc5f05866F399aAFD37673e41e3c"
+//deployed Wallet Address & IP address (for local testing) ---------------------------------------------
+const deployedWalletAddress = "0x0A81DFE6752D7178fa8F8C6C7af6DC5577fBE2B3"
 const providerUrl = "http://192.168.2.200:8545"
-
-
-
-
-
-
-
-
-
-
-
-
 //hardhat private key for testing
 const PRIVATE_KEY = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+//------------------------------------------------------------------------------------------------------
+
 
 
 const POLYGON_MAINNET_URL = Config.POLYGON_MAINNET_URL;

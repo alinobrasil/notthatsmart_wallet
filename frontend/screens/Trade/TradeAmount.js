@@ -45,6 +45,7 @@ const TradeAmount = ({ route, navigation }) => {
         )
 
         let wmaticBalance = await wmatic.balanceOf(wallet.address);
+        console.log("SC wallet address: ", wallet.address)
         wmaticBalance = ethers.utils.formatEther(wmaticBalance.toString())
         console.log("wallet WMATIC balance: ", wmaticBalance)
         setWalletWMATIC(wmaticBalance)

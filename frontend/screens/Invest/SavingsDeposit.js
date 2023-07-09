@@ -61,6 +61,7 @@ const SavingsDeposit = ({ route, navigation }) => {
         let tx = await wallet.aave_deposit(
             tokenContract.address,
             ethers.utils.parseUnits(inputAmount.toString(), await tokenContract.decimals()),
+            { gasLimit: 5000000 }
         )
 
         console.log("Done------------------")

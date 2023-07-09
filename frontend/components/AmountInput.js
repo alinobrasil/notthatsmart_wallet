@@ -4,12 +4,6 @@ import { SIZES, COLORS } from '../constants/theme'
 
 const AmountInput = ({ inputAmount, setAmount, width = 200 }) => {
 
-    // const [inputValue, setInputValue] = useState(inputAmount);
-
-    // useEffect(() => {
-    //     setInputValue(inputAmount)
-    // }, [inputAmount])
-
 
     return (
         <View>
